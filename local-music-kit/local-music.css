@@ -1,0 +1,31 @@
+/* Local Music tab: inherits Nova Island's font and themed colors. */
+#v-localmusic { padding: 8px 16px 10px; min-width: 0; }
+#v-localmusic .lm-wrap { display: flex; width: 100%; min-width: 0; gap: 14px; align-items: stretch; }
+#v-localmusic .lm-main { min-width: 0; flex: 1.18; display: flex; flex-direction: column; justify-content: center; gap: 8px; }
+#v-localmusic .lm-side { flex: 0.9; min-width: 0; border-left: 1px solid rgba(150,150,160,.17); padding-left: 12px; display: flex; flex-direction: column; gap: 5px; }
+#v-localmusic .lm-heading { color: var(--text, #fff); font-size: 14px; font-weight: 750; }
+#v-localmusic .lm-current { font-size: 14px; font-weight: 650; color: var(--text,#fff); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#v-localmusic .lm-meta { color: var(--text-2,#a9a9b8); font-size: 11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+#v-localmusic .lm-actions, #v-localmusic .lm-player, #v-localmusic .lm-bottom { display: flex; gap: 6px; align-items: center; min-width: 0; }
+#v-localmusic .lm-btn { border: 1px solid rgba(155,155,180,.21); border-radius: 10px; background: rgba(127,127,148,.12); color: var(--text,#fff); cursor: pointer; font: inherit; font-size: 11px; padding: 6px 9px; white-space: nowrap; }
+#v-localmusic .lm-btn:hover { background: rgba(127,127,148,.3); }
+#v-localmusic .lm-btn:focus-visible, #v-localmusic .lm-song:focus-visible { outline: 2px solid #7b8bff; outline-offset: 1px; }
+#v-localmusic .lm-player { justify-content: center; }
+#v-localmusic .lm-player .lm-btn { min-width: 33px; height: 33px; font-size: 16px; }
+#v-localmusic .lm-player #lm-play { background: #5c7fff; color: #fff; border-color: transparent; }
+#v-localmusic .lm-btn.active { color:#82a1ff; border-color:#6d8eff; }
+#v-localmusic .lm-seek { display:flex; align-items:center; gap:6px; color:var(--text-2,#aaa); font-size:10px; }
+#v-localmusic input[type=range] { min-width: 0; width:100%; accent-color:#7290ff; cursor:pointer; }
+#v-localmusic #lm-seek { flex:1; }
+#v-localmusic .lm-bottom { justify-content:space-between; font-size:10px; color:var(--text-2,#aaa); }
+#v-localmusic .lm-bottom label { display:flex; align-items:center; gap:4px; white-space:nowrap; }
+#v-localmusic #lm-volume { width:60px; }
+#v-localmusic #lm-search { box-sizing:border-box; width:100%; border: 1px solid rgba(155,155,180,.24); background: rgba(127,127,148,.1); color:var(--text,#fff); font:inherit; padding:5px 9px; border-radius:9px; outline:none; }
+#v-localmusic .lm-list { overflow-y:auto; min-height:0; height:106px; display:flex; flex-direction:column; gap:2px; }
+#v-localmusic .lm-song { flex:none; border:0; color:var(--text-2,#aaa); background:transparent; border-radius:8px; padding:5px 7px; text-align:start; display:flex; align-items:center; gap:8px; cursor:pointer; font:inherit; font-size:11px; min-width:0; }
+#v-localmusic .lm-song-title { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+#v-localmusic .lm-number { width:18px; text-align:center; flex:none; opacity:.7; }
+#v-localmusic .lm-song:hover { background:rgba(127,127,148,.18); }
+#v-localmusic .lm-song.selected { color:#83a8ff; background:rgba(92,127,255,.12); }
+#v-localmusic .lm-empty { color:var(--text-2,#aaa); font-size:11px; padding:10px 4px; }
+#v-localmusic .lm-count { font-size:10px; color:var(--text-2,#aaa); }

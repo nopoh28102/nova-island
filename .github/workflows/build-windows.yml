@@ -1,0 +1,67 @@
+name: Build Music Island Local for Windows
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/build-windows.yml'
+      - 'local-music-kit/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'nova.js'
+      - 'index.html'
+      - 'preload.js'
+      - 'prefs/**'
+      - 'views/**'
+
+permissions:
+  contents: read
+
+jobs:
+  windows-exe:
+    name: Build NSIS installer and portable EXE
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout modified fork
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Integrate local music
+        run: node local-music-kit/apply-patch.cjs .
+
+      - name: Separate modified application from official Nova Island
+        run: node local-music-kit/prepare-build.cjs .
+
+      - name: Check JavaScript syntax
+        shell: pwsh
+        run: |
+          node --check nova.js
+          node --check preload.js
+          node --check local-music.js
+          node --check views/local-music.js
+
+      - name: Install dependencies from lockfile
+        run: npm ci
+
+      - name: Build Windows setup and portable
+        shell: pwsh
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: npx electron-builder --win nsis portable --x64 --publish never
+
+      - name: Upload Windows EXE artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Music-Island-Local-Windows-x64
+          path: |
+            dist/Music-Island-Local-Setup-*.exe
+            dist/Music-Island-Local-Portable-*.exe
+          if-no-files-found: error
+          retention-days: 30
