@@ -27,7 +27,7 @@ function replaceRequired(src, find, replacement, label) {
 edit('nova.js', src => {
   src = replaceRequired(src, "path.join(app.getPath('appData'), 'dynamic-nova')", "path.join(app.getPath('appData'), 'music-island-local')", 'user data separation');
   src = replaceRequired(src, "path.join(__dirname, 'build', 'icon.ico')", "path.join(__dirname, 'build', 'local-music.ico')", 'app icon');
-  src = replaceRequired(src, '  migrateStartup();\n', '  // Do not import or edit the official application startup shortcuts.\n', 'startup migration');
+  src = replaceRequired(src, '  migrateStartup();', '  // Do not import or edit the official application startup shortcuts.', 'startup migration');
   src = replaceRequired(src, 'updater.start(send, autoUpdate);', 'updater.start(send, false); // local fork: do not apply official updates', 'auto-update startup');
   src = replaceRequired(src, 'updater.setEnabled(autoUpdate);', 'updater.setEnabled(false); // local fork: avoid replacing modified build', 'auto-update toggle');
   src = src.replaceAll('Nova Island.lnk', 'Music Island Local.lnk');
