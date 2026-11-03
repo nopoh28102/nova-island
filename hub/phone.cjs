@@ -26,7 +26,7 @@ function discoverIP() {
   }
   return '';
 }
-function makePhone({downloads, clipboard, onActivity}) {
+function makePhone({downloads, clipboard, onActivity, addressOverride}) {
   let server = null, address = '', port = 0, code = '', codeUntil = 0;
   const sessions = new Map(), tries = new Map();
   const info = () => ({
@@ -108,8 +108,8 @@ function makePhone({downloads, clipboard, onActivity}) {
   }
   async function start() {
     if (server) return info();
-    address = discoverIP();
-    if (!address) return {...info(),error:'No private IPv4 Wi-Fi/LAN address found'};
+    address = addressOverride || discoverIP();
+    if (!privateIPv4(address)) return {...info(),error:'No private IPv4 Wi-Fi/LAN address found'};
     code = String(crypto.randomInt(10000000,99999999));
     codeUntil = Date.now()+5*60*1000;
     const s = http.createServer(handler);
