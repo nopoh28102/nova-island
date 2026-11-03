@@ -40,7 +40,7 @@ function showState(s) {
   const p=s.phone;
   el('phone-url').textContent=p.url||'غير نشط';
   el('phone-code').textContent=p.running?p.code:'—';
-  el('phone-state').textContent=p.running?'الهواتف المتصلة: '+p.paired+' · الرمز يتغير بعد الاقتران وينتهي خلال 5 دقائق':'المشاركة متوقفة';
+  el('phone-state').textContent=p.running?'الهواتف المتصلة: '+p.paired+' · الملف المتاح: '+(p.sharedName||'لا يوجد')+' · الرمز مؤقت':'المشاركة متوقفة';
   el('phone-start').disabled=!!p.running;
   el('phone-stop').disabled=!p.running;
   el('auto-on').checked=s.automationOn;
@@ -109,3 +109,10 @@ document.addEventListener('drop',async e=>{
   try{showState(await api.dropped(e.dataTransfer.files));showTab('drop');toast('أضيفت الملفات إلى Magic Drop');}
   catch(err){toast(err.message)}
 });
+
+for(const [id,fn] of [['phone-share-file',()=>api.shareFile()],['phone-share-text',()=>api.shareClipboard()]]) {
+  el(id).addEventListener('click',async()=>{
+    try{const result=await fn();toast(result.error||'تمت مشاركة المحتوى');refresh();}
+    catch(error){toast(error.message)}
+  });
+}
