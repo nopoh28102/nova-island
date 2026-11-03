@@ -18,5 +18,7 @@ contextBridge.exposeInMainWorld('hub',{
   removeRule:id=>invoke('hub-rule-remove',id),
   phoneStart:()=>invoke('hub-phone-start'),
   phoneStop:()=>invoke('hub-phone-stop'),
+  shareFile:()=>invoke('hub-phone-share-file'),
+  shareClipboard:()=>invoke('hub-phone-share-clipboard'),
   onState:callback=>ipcRenderer.on('hub-state',(_event,data)=>callback(data))
 });
