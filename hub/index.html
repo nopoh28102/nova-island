@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'">
+<title>Nova Productivity Hub</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<header class="header"><div class="brand"><span class="brandicon">✦</span><div><h1>Nova Productivity Hub</h1><small>مركز تحكم الجزيرة الذكي · Windows</small></div></div><div class="hint">Ctrl + Shift + Space</div></header>
+<nav id="nav">
+<button class="nav active" data-tab="command">⌘ الأوامر</button>
+<button class="nav" data-tab="drop">📁 Magic Drop</button>
+<button class="nav" data-tab="modes">◈ الأوضاع</button>
+<button class="nav" data-tab="activities">◉ الأنشطة</button>
+<button class="nav" data-tab="phone">▣ الهاتف</button>
+<button class="nav" data-tab="rules">⚡ الأتمتة</button>
+</nav>
+<main>
+<section class="panel active" id="tab-command"><h2>Nova Command Center</h2><p>ابحث عن تطبيقاتك وملفات مجلد تختاره، أو احسب عملية رياضية بكتابة علامة = ثم العملية.</p>
+<input id="command" class="wide" autofocus autocomplete="off" placeholder="ابحث، مثال: =25*(4+2) أو Chrome أو اسم ملف">
+<div id="results" class="results"></div>
+<div class="footer"><button id="index-folder" class="soft">📂 اختر مجلدًا للبحث</button><small id="search-state">لم يتم اختيار مجلد</small></div></section>
+<section class="panel" id="tab-drop"><h2>Magic Drop</h2><p>اسحب الملفات إلى النافذة أو اخترها يدويًا. يمكن ضغطها ZIP أو نسخها دون حذف الأصول.</p><div class="buttons"><button id="drop-pick">اختيار ملفات</button><button data-drop="zip">إنشاء ZIP</button><button data-drop="copy">نسخ إلى مجلد</button><button data-drop="paths">نسخ المسارات</button><button data-drop="reveal">إظهار في Explorer</button></div><div id="drop-list" class="entries empty">لم يتم اختيار أي ملفات بعد</div></section>
+<section class="panel" id="tab-modes"><h2>Smart Modes</h2><p>تغيّر الأوضاع إعدادات الإشعارات والمؤثرات مؤقتًا، ثم تستعيد قيمها السابقة عند العودة إلى الوضع الطبيعي.</p>
+<div class="mode-grid"><button class="mode" data-mode="normal">☀️ <b>عادي</b><small>إعداداتك المعتادة</small></button><button class="mode" data-mode="work">💼 <b>العمل</b><small>تقليل الإشعارات الإخبارية</small></button><button class="mode" data-mode="focus">🎯 <b>تركيز</b><small>تقليل التشتت والتنبيهات</small></button><button class="mode" data-mode="gaming">🎮 <b>ألعاب</b><small>مؤثرات أقل واستهلاك أخف</small></button></div><div class="statusline">الوضع الحالي: <strong id="current-mode">normal</strong></div></section>
+<section class="panel" id="tab-activities"><h2>Live Activities</h2><p>تابع أعمال ضغط ونسخ الملفات، مشاركة الهاتف، تغيّر الأوضاع وقواعد الأتمتة.</p><div id="activity-list" class="entries"></div></section>
+<section class="panel" id="tab-phone"><h2>Phone Connect</h2><p>مشاركة ملفات الهاتف مع الكمبيوتر وإرسال نص إلى الحافظة عبر شبكة Wi-Fi محلية. الاتصال يدوي ويتوقف عند إغلاق التطبيق.</p>
+<div class="warning">تنبيه: الاتصال عبر HTTP غير مشفّر. استخدمه فقط على شبكة منزلية موثوقة، وليس Wi-Fi عامة.</div>
+<div class="buttons"><button id="phone-start">تشغيل اتصال الهاتف</button><button id="phone-stop" class="danger">إيقاف المشاركة</button><button id="phone-share-file">اختيار ملف للهاتف</button><button id="phone-share-text">مشاركة الحافظة</button></div>
+<div class="pair"><div>افتح هذا العنوان على هاتفك المتصل بنفس الراوتر:</div><code id="phone-url" dir="ltr">غير نشط</code><div>رمز اقتران مؤقت (8 أرقام):</div><code id="phone-code" dir="ltr">—</code><small id="phone-state"></small></div></section>
+<section class="panel" id="tab-rules"><h2>Automations Engine</h2><p>قواعد آمنة لتغيير الوضع عند فتح تطبيق أو بلوغ ساعة محددة. لا تنفيذ لسكربتات أو أوامر نظام تلقائية.</p><label class="toggle"><input type="checkbox" id="auto-on"> تفعيل القواعد تلقائيًا</label>
+<div class="rule-add"><select id="rule-type"><option value="app">عند التركيز على تطبيق</option><option value="time">في وقت معين</option></select><input id="rule-value" placeholder="Code.exe أو 09:30"><select id="rule-mode"><option value="work">وضع العمل</option><option value="focus">التركيز</option><option value="gaming">الألعاب</option><option value="normal">العادي</option></select><button id="rule-add">إضافة قاعدة</button></div>
+<div id="rule-list" class="entries"></div></section>
+</main><div id="toast" role="status" aria-live="polite"></div><script src="ui.js"></script>
+</body></html>

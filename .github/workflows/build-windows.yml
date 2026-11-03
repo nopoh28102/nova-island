@@ -3,7 +3,7 @@ name: Build Music Island Local for Windows
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, 'feat/nova-hub-2']
     paths:
       - '.github/workflows/build-windows.yml'
       - 'local-music-kit/**'
@@ -14,6 +14,11 @@ on:
       - 'preload.js'
       - 'prefs/**'
       - 'views/**'
+      - 'hub/**'
+
+concurrency:
+  group: music-island-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -38,6 +43,23 @@ jobs:
 
       - name: Separate modified application from official Nova Island
         run: node local-music-kit/prepare-build.cjs .
+
+      - name: Integrate Nova Productivity Hub
+        run: node hub/apply.cjs .
+
+      - name: Run Hub unit tests
+        run: node --test hub/logic.test.cjs hub/phone.test.cjs
+
+      - name: Check Hub integration and syntax
+        shell: pwsh
+        run: |
+          node --check hub/logic.cjs
+          node --check hub/main.cjs
+          node --check hub/phone.cjs
+          node --check hub/preload.cjs
+          node --check hub/ui.js
+          node --check hub/apply.cjs
+          Select-String -Path nova.js -Pattern 'hub.start()' -SimpleMatch -Quiet | ForEach-Object { if (-not $_) { throw 'Missing Hub startup' } }
 
       - name: Check JavaScript syntax
         shell: pwsh
