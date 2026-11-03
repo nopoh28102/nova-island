@@ -17,6 +17,29 @@ let automationOn = stored.automationOn === true;
 let win = null, activityId = 0, activeMode = 'normal', baseline = null, ruleOwner = false;
 let selected = [], indexed = [], searchFolder = '', lastForeground = '', lastTick = '';
 const activities = [];
+let downloadRows = [];
+const downloadStatus = new Map();
+function onDownloads(payload) {
+  const items = Array.isArray(payload?.items) ? payload.items.slice(0,25) : [];
+  const rows = items.map(d => ({
+    name: String(d.name||'Download').slice(0,100),
+    status: String(d.status||'').slice(0,35),
+    percent: Number.isFinite(d.progress) ? Math.round(d.progress*100) : null
+  }));
+  const signature = JSON.stringify(rows);
+  if (signature === JSON.stringify(downloadRows)) return;
+  for(const d of items) {
+    const id = String(d.id||d.path||d.name||'');
+    if (!id) continue;
+    const prev = downloadStatus.get(id);
+    if (prev && prev !== d.status && ['complete','completed','done','finished'].includes(String(d.status))) {
+      log('download','اكتمل تحميل: '+String(d.name||'file').slice(0,90));
+    }
+    downloadStatus.set(id,d.status);
+  }
+  if(downloadStatus.size>150)downloadStatus.clear();
+  downloadRows=rows;update();
+}
 let phone;
 const save = () => settings.save(SAVE,{rules,automationOn});
 function log(type,title,status='done') {
@@ -29,7 +52,8 @@ function update() {
 }
 function snapshot() {
   return {mode:activeMode,automationOn,rules:rules.slice(),activities:activities.slice(),
-    drop:selected.map(p=>({name:path.basename(p),kind:fs.existsSync(p)&&fs.statSync(p).isDirectory()?'folder':'file'})),
+    drop:selected.filter(p=>fs.existsSync(p)).map(p=>({name:path.basename(p),kind:fs.statSync(p).isDirectory()?'folder':'file'})),
+    downloads:downloadRows.slice(0,10),
     searchFolder,searchCount:indexed.length,phone:phone ? phone.info() : {running:false}};
 }
 function modeSet(mode,origin='manual') {
@@ -231,6 +255,12 @@ function start() {
   ipcMain.handle('hub-find',guard(q=>find(q)));
   ipcMain.handle('hub-execute',guard(id=>execute(id)));
   ipcMain.handle('hub-pick',guard(()=>pickDrop()));
+  ipcMain.handle('hub-drag-files',guard(paths=>{
+    if(!Array.isArray(paths))return {ok:false,error:'Invalid files'};
+    selected=paths.filter(p=>typeof p==='string' && path.isAbsolute(p) && fs.existsSync(p)).slice(0,60);
+    if(selected.length)log('files','أُضيف '+selected.length+' ملف عبر السحب');
+    return snapshot();
+  }));
   ipcMain.handle('hub-search-folder',guard(()=>pickSearch()));
   ipcMain.handle('hub-drop-action',guard(type=>dropAction(type)));
   ipcMain.handle('hub-mode',guard(mode=>modeSet(mode)));
@@ -248,4 +278,4 @@ function start() {
   setTimeout(()=>apps.all().then(list=>{appCatalog=list.map(a=>({id:a.id,name:a.name}));}).catch(()=>{}),2500);
   app.on('before-quit',()=>phone && phone.stop());
 }
-module.exports={start,show,onMedia};
+module.exports={start,show,onMedia,onDownloads};
