@@ -24,7 +24,7 @@ function onDownloads(payload) {
   const rows = items.map(d => ({
     name: String(d.name||'Download').slice(0,100),
     status: String(d.status||'').slice(0,35),
-    percent: Number.isFinite(d.progress) ? Math.round(d.progress*100) : null
+    percent: Number(d.total)>0 ? Math.max(0,Math.min(100,Math.round(Number(d.downloaded||0)/Number(d.total)*100))) : null
   }));
   const signature = JSON.stringify(rows);
   if (signature === JSON.stringify(downloadRows)) return;
@@ -264,7 +264,7 @@ function start() {
   ipcMain.handle('hub-search-folder',guard(()=>pickSearch()));
   ipcMain.handle('hub-drop-action',guard(type=>dropAction(type)));
   ipcMain.handle('hub-mode',guard(mode=>modeSet(mode)));
-  ipcMain.handle('hub-automation-toggle',guard(v=>{automationOn=v===true;save();update();return snapshot();}));
+  ipcMain.handle('hub-automation-toggle',guard(v=>{automationOn=v===true;if(!automationOn && ruleOwner)modeSet('normal','rule');save();update();return snapshot();}));
   ipcMain.handle('hub-rule-add',guard(raw=>{
     const clean=cleanRule(raw);if(!clean||rules.length>=25)return {ok:false,error:'قاعدة غير صالحة'};
     clean.id=crypto.randomBytes(6).toString('hex');rules.push(clean);save();update();return snapshot();
@@ -276,6 +276,6 @@ function start() {
   globalShortcut.register('CommandOrControl+Shift+Space',show);
   // Start-app catalog scan without delaying island launch.
   setTimeout(()=>apps.all().then(list=>{appCatalog=list.map(a=>({id:a.id,name:a.name}));}).catch(()=>{}),2500);
-  app.on('before-quit',()=>phone && phone.stop());
+  app.on('before-quit',()=>{if(baseline)features.set(baseline);if(phone)phone.stop();});
 }
 module.exports={start,show,onMedia,onDownloads};
