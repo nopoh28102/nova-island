@@ -1,11 +1,15 @@
 'use strict';
-const {contextBridge,ipcRenderer}=require('electron');
+const {contextBridge,ipcRenderer,webUtils}=require('electron');
 const invoke=(channel,...args)=>ipcRenderer.invoke(channel,...args);
 contextBridge.exposeInMainWorld('hub',{
   state:()=>invoke('hub-state'),
   find:q=>invoke('hub-find',q),
   execute:id=>invoke('hub-execute',id),
   pick:()=>invoke('hub-pick'),
+  dropped:files=>{
+    const paths=Array.from(files||[]).map(f=>{try{return webUtils.getPathForFile(f);}catch{return ''}}).filter(Boolean);
+    return invoke('hub-drag-files',paths);
+  },
   searchFolder:()=>invoke('hub-search-folder'),
   drop:type=>invoke('hub-drop-action',type),
   mode:value=>invoke('hub-mode',value),
