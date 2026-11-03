@@ -18,6 +18,9 @@ if(p.version!=='1.6.0')throw Error('Expected Nova Island 1.6.0');
 edit('nova.js',"const plugins = require('./plugins');","const plugins = require('./plugins');\nconst hub = require('./hub/main.cjs');","const hub = require('./hub/main.cjs');");
 edit('nova.js','  createWindow();','  createWindow();\n  hub.start();','  hub.start();');
 edit('nova.js',"        send('media', data);","        send('media', data);\n        hub.onMedia(data);","        hub.onMedia(data);");
+edit('nova.js',"  if (win && !win.isDestroyed()) win.webContents.send(channel, data);",
+"  if (win && !win.isDestroyed()) win.webContents.send(channel, data);\n  if(channel === 'downloads') hub.onDownloads(data);",
+"hub.onDownloads(data);");
 edit('preload.js',"  openSettings: () => ipcRenderer.send('open-settings'),","  openSettings: () => ipcRenderer.send('open-settings'),\n  openHub: () => ipcRenderer.send('hub-open'),","  openHub: () => ipcRenderer.send('hub-open'),");
 edit('index.html','            <button class="gear" id="open-settings"','            <button class="gear" id="open-hub" title="Productivity Hub" aria-label="Open Nova Productivity Hub">✦</button>\n            <button class="gear" id="open-settings"','id="open-hub"');
 edit('renderer.js',"$('#open-settings').addEventListener('click', () => bridge.openSettings());","$('#open-settings').addEventListener('click', () => bridge.openSettings());\n$('#open-hub').addEventListener('click', () => bridge.openHub());","$('#open-hub').addEventListener");
