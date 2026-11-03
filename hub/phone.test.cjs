@@ -49,6 +49,16 @@ test('Phone Connect is opt-in, paired, restricted, and receives a file without e
     assert.equal(result.ok,true);
     const diskPath=path.join(temp,'Music Island Phone',result.name);
     assert.equal(fs.readFileSync(diskPath,'utf8'),'hello from phone');
+    const outgoing=path.join(temp,'shared-desktop.txt');
+    fs.writeFileSync(outgoing,'from desktop');
+    assert.equal(phone.shareFile(outgoing).sharedName,'shared-desktop.txt');
+    const downloaded=await fetch(url+'/download',{headers:{cookie}});
+    assert.equal(downloaded.status,200);
+    assert.equal(await downloaded.text(),'from desktop');
+    assert.equal(phone.shareText('text from desktop').sharedTextAvailable,true);
+    const sharedNote=await fetch(url+'/shared-note',{headers:{cookie}});
+    assert.equal(sharedNote.status,200);
+    assert.equal((await sharedNote.json()).text,'text from desktop');
     assert.ok(activities.length>=2);
   } finally {
     phone.stop();
