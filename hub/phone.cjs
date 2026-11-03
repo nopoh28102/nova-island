@@ -14,11 +14,12 @@ function page() {
   '<style>body{font:16px system-ui;background:#0e1220;color:white;max-width:500px;margin:30px auto;padding:18px}h1{color:#a3b9ff}section{background:#1b2033;padding:18px;border-radius:16px;margin:15px 0}input,textarea,button{box-sizing:border-box;width:100%;background:#282e45;border:1px solid #424d72;border-radius:9px;padding:12px;color:white;margin:8px 0;font:inherit}button{background:#536cff;cursor:pointer}small{color:#aab2d0}#connected{display:none}</style>'+
   '<h1>📱 Music Island Phone</h1><small>اتصال محلي فقط. استخدم شبكة Wi-Fi موثوقة.</small>'+
   '<section id="pair"><label>رمز الاقتران المعروض على الكمبيوتر</label><input id="code" inputmode="numeric" maxlength="8" placeholder="8 أرقام"><button id="login">اتصال</button></section>'+
-  '<section id="connected"><h3>متصل بالكمبيوتر ✓</h3><label>إرسال ملف إلى الكمبيوتر (20MB كحد أقصى)</label><input type="file" id="file"><button id="upload">إرسال الملف</button><label>إرسال نص إلى حافظة الكمبيوتر</label><textarea id="note" maxlength="4000"></textarea><button id="send">إرسال النص</button></section><p id="result" aria-live="polite"></p>'+
+  '<section id="connected"><h3>متصل بالكمبيوتر ✓</h3><p><a href="/download" style="color:#a9beff">⬇ تنزيل الملف الذي شاركه الكمبيوتر</a></p><button id="get-note">استلام نص من الكمبيوتر</button><label>إرسال ملف إلى الكمبيوتر (20MB كحد أقصى)</label><input type="file" id="file"><button id="upload">إرسال الملف</button><label>إرسال نص إلى حافظة الكمبيوتر</label><textarea id="note" maxlength="4000"></textarea><button id="send">إرسال النص</button></section><p id="result" aria-live="polite"></p>'+
   '<script>const el=x=>document.getElementById(x);function msg(s){el("result").textContent=s}async function ask(u,o){let r=await fetch(u,o);let j=await r.json();if(!r.ok)throw Error(j.error||"فشل الطلب");return j}'+
   'el("login").onclick=async()=>{try{await ask("/pair",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({code:el("code").value})});el("pair").style.display="none";el("connected").style.display="block";msg("تم الاقتران")}catch(e){msg(e.message)}};'+
   'el("upload").onclick=async()=>{const f=el("file").files[0];if(!f)return msg("اختر ملفًا");if(f.size>20971520)return msg("الملف أكبر من 20MB");try{const r=await ask("/upload",{method:"POST",headers:{"x-file-name":encodeURIComponent(f.name)},body:f});msg("تم حفظ: "+r.name)}catch(e){msg(e.message)}};'+
-  'el("send").onclick=async()=>{try{await ask("/note",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({text:el("note").value})});msg("تم نسخ النص إلى الحافظة")}catch(e){msg(e.message)}};</script></html>';
+  'el("send").onclick=async()=>{try{await ask("/note",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({text:el("note").value})});msg("تم نسخ النص إلى الحافظة")}catch(e){msg(e.message)}};'+
+  'el("get-note").onclick=async()=>{try{const j=await ask("/shared-note");el("note").value=j.text;msg("تم استلام النص")}catch(e){msg(e.message)}};</script></html>';
 }
 function discoverIP() {
   for (const addrs of Object.values(os.networkInterfaces())) for (const info of addrs || []) {
@@ -28,10 +29,12 @@ function discoverIP() {
 }
 function makePhone({downloads, clipboard, onActivity, addressOverride}) {
   let server = null, address = '', port = 0, code = '', codeUntil = 0;
+  let sharedFile = '', sharedText = '', sharedUntil = 0;
   const sessions = new Map(), tries = new Map();
   const info = () => ({
     running: !!server, url: server ? 'http://' + address + ':' + port : '',
     code: server ? code : '', codeUntil, paired: sessions.size,
+    sharedName: sharedFile && Date.now()<sharedUntil ? path.basename(sharedFile) : '', sharedTextAvailable: !!sharedText,
     warning: 'HTTP on private LAN only — do not use public or untrusted Wi-Fi.'
   });
   const json = (res, status, data, cookie) => {
@@ -79,6 +82,21 @@ function makePhone({downloads, clipboard, onActivity, addressOverride}) {
       }).catch(()=>json(res,400,{error:'Invalid request'}));
     }
     if (!authorized(req)) return json(res,401,{error:'افتح صفحة الاقتران مرة أخرى'});
+    if (req.method === 'GET' && req.url === '/download') {
+      if (!sharedFile || Date.now()>sharedUntil) return json(res,404,{error:'No shared file'});
+      try {
+        const stat=fs.statSync(sharedFile);
+        if(!stat.isFile() || stat.size > 100*1024*1024) throw Error('Not available');
+        res.writeHead(200,{'content-type':'application/octet-stream','content-length':stat.size,
+          'content-disposition':"attachment; filename*=UTF-8''"+encodeURIComponent(path.basename(sharedFile)),
+          'cache-control':'no-store'});
+        return fs.createReadStream(sharedFile).on('error',()=>res.destroy()).pipe(res);
+      }catch{return json(res,404,{error:'Shared file missing'});}
+    }
+    if (req.method === 'GET' && req.url === '/shared-note') {
+      if(!sharedText)return json(res,404,{error:'No shared note'});
+      return json(res,200,{text:sharedText});
+    }
     if (req.method === 'POST' && req.url === '/note') {
       return readJson(req).then(body => {
         if (typeof body.text !== 'string' || !body.text.trim() || body.text.length > MAX_NOTE) return json(res,400,{error:'Bad note'});
@@ -125,10 +143,27 @@ function makePhone({downloads, clipboard, onActivity, addressOverride}) {
   function stop() {
     if (server) server.closeAllConnections && server.closeAllConnections();
     if (server) server.close();
-    server=null;address='';port=0;code='';codeUntil=0;sessions.clear();tries.clear();
+    server=null;address='';port=0;code='';codeUntil=0;sharedFile='';sharedText='';sharedUntil=0;sessions.clear();tries.clear();
     onActivity('phone','تم إيقاف مشاركة الهاتف');
     return info();
   }
-  return {start,stop,info};
+  function shareFile(file) {
+    if(!server)return {...info(),error:'Start phone sharing first'};
+    try{
+      const stat=fs.statSync(file);
+      if(!stat.isFile() || stat.size>100*1024*1024)throw Error('Only files up to 100MB can be shared');
+    }catch(e){return {...info(),error:e.message};}
+    sharedFile=file;sharedUntil=Date.now()+10*60*1000;
+    onActivity('phone','ملف متاح للهاتف: '+path.basename(file));
+    return info();
+  }
+  function shareText(text) {
+    if(!server)return {...info(),error:'Start phone sharing first'};
+    if(typeof text!=='string'||!text.trim())return {...info(),error:'Clipboard is empty'};
+    sharedText=text.slice(0,MAX_NOTE);
+    onActivity('phone','تم إتاحة نص للهاتف');
+    return info();
+  }
+  return {start,stop,info,shareFile,shareText};
 }
 module.exports = {makePhone};
