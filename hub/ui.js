@@ -30,6 +30,9 @@ function showState(s) {
   el('current-mode').textContent=s.mode;
   document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===s.mode));
   const acts=el('activity-list');acts.replaceChildren();
+  for(const d of s.downloads||[]) {
+    row(acts,'تحميل: '+d.name,d.status+(d.percent===null?'':' · '+d.percent+'%'));
+  }
   for(const a of s.activities) {
     row(acts,a.title,new Date(a.at).toLocaleString('ar-EG')+' • '+(a.status==='running'?'جارٍ التنفيذ':a.status==='failed'?'فشل':'تم'));
   }
@@ -98,3 +101,11 @@ el('rule-add').addEventListener('click',async()=>{
 });
 el('phone-start').addEventListener('click',async()=>{try{const p=await api.phoneStart();if(p.error)toast(p.error);else toast('المشاركة مفعّلة — افتح الرابط من الهاتف');refresh();}catch(e){toast(e.message)}});
 el('phone-stop').addEventListener('click',async()=>{try{await api.phoneStop();refresh();toast('تم إيقاف الاتصال');}catch(e){toast(e.message)}});
+
+document.addEventListener('dragover',e=>{if(e.dataTransfer && Array.from(e.dataTransfer.types).includes('Files'))e.preventDefault();});
+document.addEventListener('drop',async e=>{
+  if(!e.dataTransfer || !e.dataTransfer.files.length)return;
+  e.preventDefault();
+  try{showState(await api.dropped(e.dataTransfer.files));showTab('drop');toast('أضيفت الملفات إلى Magic Drop');}
+  catch(err){toast(err.message)}
+});
