@@ -272,6 +272,15 @@ function start() {
   ipcMain.handle('hub-rule-remove',guard(id=>{rules=rules.filter(r=>r.id!==id);save();update();return snapshot();}));
   ipcMain.handle('hub-phone-start',guard(async()=>{const result=await phone.start();update();return result;}));
   ipcMain.handle('hub-phone-stop',guard(()=>{const result=phone.stop();update();return result;}));
+  ipcMain.handle('hub-phone-share-file',guard(async()=>{
+    if(!phone.info().running)return {error:'Start phone sharing first'};
+    const chosen=await dialog.showOpenDialog(win,{title:'اختر ملفًا لإرساله إلى الهاتف',properties:['openFile']});
+    if(chosen.canceled || !chosen.filePaths[0])return phone.info();
+    const result=phone.shareFile(chosen.filePaths[0]);update();return result;
+  }));
+  ipcMain.handle('hub-phone-share-clipboard',guard(async()=>{
+    const result=phone.shareText(await clipboard.readText());update();return result;
+  }));
   setInterval(tick,15*1000).unref();
   globalShortcut.register('CommandOrControl+Shift+Space',show);
   // Start-app catalog scan without delaying island launch.
