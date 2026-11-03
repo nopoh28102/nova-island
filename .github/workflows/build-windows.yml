@@ -16,6 +16,10 @@ on:
       - 'views/**'
       - 'hub/**'
 
+concurrency:
+  group: music-island-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
