@@ -44,7 +44,7 @@ jobs:
         run: node hub/apply.cjs .
 
       - name: Run Hub unit tests
-        run: node --test hub/logic.test.cjs
+        run: node --test hub/logic.test.cjs hub/phone.test.cjs
 
       - name: Check Hub integration and syntax
         shell: pwsh
